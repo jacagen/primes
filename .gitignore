@@ -1,0 +1,9 @@
+# Stack & Haskell
+.stack-work/
+*~
+
+# JetBrains
+.idea
+
+# VSCode
+.vscode
