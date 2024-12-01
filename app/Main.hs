@@ -1,18 +1,32 @@
 module Main (main) where
 
-import qualified NaiveSieve (primes)
-import qualified BetterSieve (primes)
 import Bench (bench)
+import qualified BetterSieve (primes)
 import Control.Monad (replicateM)
+import Data.Map (Map, fromList, (!))
+import qualified NaiveSieve (primes)
+import System.Environment (getArgs)
 
-primeCount :: Int
-primeCount = 1000000
+impls :: Map String [Integer]
+impls = fromList [("NaiveSieve", NaiveSieve.primes), ("BetterSieve", BetterSieve.primes)]
 
+data Arguments = Arguments
+  { trials :: Int,
+    primes :: Int,
+    function :: [Integer]
+  }
+
+parseArgs :: [String] -> Arguments
+parseArgs [trialsStr, primesStr, functionStr] =
+  let fs = impls ! functionStr
+      ts = read trialsStr
+      ps = read primesStr
+   in Arguments {trials = ts, primes = ps, function = fs}
+parseArgs _ = error "Bad arguments"
 
 main :: IO ()
 main = do
-    --naiveResults <- replicateM 1 (bench (take primeCount NaiveSieve.primes))
-    betterResults <- replicateM 1 (bench (take primeCount BetterSieve.primes))
-    --putStrLn ("Naive results (" ++ show primeCount ++ "): " ++ show naiveResults)
-    putStrLn ("Better results (" ++ show primeCount ++ "): " ++ show betterResults)
-
+  args' <- getArgs
+  let args = parseArgs args'
+  results <- replicateM (trials args) (bench (take (primes args) (function args)))
+  putStrLn ("Results: " ++ show results)
